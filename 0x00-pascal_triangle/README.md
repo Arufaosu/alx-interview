@@ -1,1 +1,1 @@
-0x00. Pascal's Triangle testing
+0x00. Pascal's Triangl
