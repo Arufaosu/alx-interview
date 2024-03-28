@@ -1,46 +1,51 @@
 #!/usr/bin/python3
-"""script that reads stdin line by line"""
+"""0-stats.py"""
 import sys
-import re
+from typing import Dict
 
-def print_statistics(total_file_size, status_counts):
-    """print stats"""
-    print("File size:", total_file_size)
-    for status_code, count in sorted(status_counts.items()):
-        print(f"{status_code}: {count}")
 
-def parse_line(line):
-    """define a regex pattern to extract relevant information from the log line"""
-    pattern = r'^\d+\.\d+\.\d+\.\d+ - \[.*\] "GET /projects/260 HTTP/1\.1" (\d+) (\d+)'
+def print_stats(file_size: int, status_codes: Dict[str, int]) -> None:
+    """output stat"""
 
-    match = re.match(pattern, line)
-    if match:
-        status_code = match.group(1)
-        file_size = int(match.group(2))
-        return status_code, file_size
-    else:
-        return None, None
+    print('File size:', file_size)
 
-def main():
-    total_file_size = 0
-    status_counts = {str(code): 0 for code in [200, 301, 400, 401, 403, 404, 405, 500]}
-    lines_processed = 0
+    for code, stat in sorted(status_codes.items(), key=lambda c: c[0]):
+        print(f'{code}: {stat}')
+
+
+if __name__ == '__main__':
+
+    file_size = 0
+
+    status_codes = {}
+    valid_codes = [200, 301, 400, 401, 403, 404, 405, 500]
+
+    count_read = 0
 
     try:
-        for line in sys.stdin:
-            status_code, file_size = parse_line(line)
-            if status_code is not None:
-                total_file_size += file_size
-                status_counts[status_code] += 1
-                lines_processed += 1
 
-            if lines_processed == 10:
-                print_statistics(total_file_size, status_counts)
-                lines_processed = 0
+        for line in sys.stdin:
+
+            try:
+                infos = line[:-1].split()
+
+                size = int(infos[-1])
+                file_size += size
+
+                code = int(infos[-2])
+                if code in valid_codes:
+                    status_codes[code] = status_codes.get(code, 0) + 1
+
+            except BaseException:
+                pass
+
+            count_read += 1
+
+            if count_read % 10 == 0:
+                print_stats(file_size, status_codes)
 
     except KeyboardInterrupt:
-        print_statistics(total_file_size, status_counts)
-        sys.exit(0)
+        print_stats(file_size, status_codes)
+        raise
 
-if __name__ == "__main__":
-    main()
+    print_stats(file_size, status_codes)
