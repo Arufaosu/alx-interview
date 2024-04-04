@@ -1,39 +1,80 @@
 #!/usr/bin/python3
 """0-validate_utf8.py"""
+from typing import List
 
-def validUTF8(data):
-    def checkLeadingOnes(byte):
-        return (byte & 0b11000000) == 0b10000000
+def validUTF8(data: List[int]) -> bool:
+    """checks if int is valid or not"""
 
-    i = 0
-    while i < len(data):
-        leading_ones = 0
-        byte = data[i]
+    def single_UTF8_byte(byte: int) -> bool:
+        return True if byte >> 7 & 1 == 0 else False
 
-        if byte & 0b10000000 == 0:
-            leading_ones = 0
-        elif byte & 0b11100000 == 0b11000000:
-            leading_ones = 1
-        elif byte & 0b11110000 == 0b11100000:
-            leading_ones = 2
-        elif byte & 0b11111000 == 0b11110000:
-            leading_ones = 3
+    def continuation_UTF8_byte(byte: int) -> bool:
+        """checks if byte represents a continuation UTF-8 byte"""
+        if byte >> 7 & 1 == 1 and byte >> 6 & 1 == 0:
+            return True
         else:
             return False
 
-        for j in range(1, leading_ones + 1):
-            if i + j >= len(data) or not checkLeadingOnes(data[i + j]):
+    def two_UTF8_byte(byte: int) -> bool:
+        """checks if the byte starts a 2-byte UTF-8 grapheme"""
+        if byte >> 7 & 1 == 1 and byte >> 6 & 1 == 1 and byte >> 5 & 1 == 0:
+            return True
+        else:
+            return False
+
+    def three_UTF8_byte(byte: int) -> bool:
+        """checks if the byte starts a 3-byte UTF-8 grapheme"""
+        if byte >> 7 & 1 == 1 and byte >> 6 & 1 == 1 and byte >> 5 & 1 == 1\
+                and byte >> 4 & 1 == 0:
+            return True
+        else:
+            return False
+
+    def four_UTF8_byte(byte: int) -> bool:
+        """checks if the byte starts a 4-byte UTF-8 grapheme"""
+        if byte >> 7 & 1 == 1 and byte >> 6 & 1 == 1 and byte >> 5 & 1 == 1\
+                and byte >> 4 & 1 == 1 and byte >> 3 & 1 == 0:
+            return True
+        else:
+            return False
+
+    total_bytes = len(data)
+    idx = 0
+
+    while idx < total_bytes:
+        byte = data[idx]
+
+        if single_UTF8_byte(byte):
+            idx += 1
+            continue
+
+        elif two_UTF8_byte(byte):
+            if idx > total_bytes - 2 or\
+                    not continuation_UTF8_byte(data[idx + 1]):
                 return False
 
-        i += leading_ones + 1
+            idx += 2
+            continue
+
+        elif three_UTF8_byte(byte):
+            if idx > total_bytes - 3 or\
+                    not continuation_UTF8_byte(data[idx + 1]) or\
+                    not continuation_UTF8_byte(data[idx + 2]):
+                return False
+
+            idx += 3
+            continue
+
+        elif four_UTF8_byte(byte):
+            if idx > total_bytes - 4 or\
+                    not continuation_UTF8_byte(data[idx + 1]) or\
+                    not continuation_UTF8_byte(data[idx + 2]) or\
+                    not continuation_UTF8_byte(data[idx + 3]):
+                return False
+
+            idx += 4
+            continue
+        else:
+            return False
 
     return True
-
-data1 = [65]
-print(validUTF8(data1))
-
-data2 = [80, 121, 116, 104, 111, 110, 32, 105, 115, 32, 99, 111, 111, 108, 33]
-print(validUTF8(data2))
-
-data3 = [229, 65, 127, 256]
-print(validUTF8(data3))
