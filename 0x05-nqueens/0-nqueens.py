@@ -2,55 +2,66 @@
 """queens"""
 import sys
 
-def is_safe(board, row, col, N):
+total_solutions = []
+
+
+def solve_nqueens(board, N, solution, row):
     """checks if there is a queen"""
-    for i in range(row):
-        if board[i][col] == 1:
-            return False
-
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return False
-
-    for i, j in zip(range(row, -1, -1), range(col, N)):
-        if board[i][j] == 1:
-            return False
-
-    return True
-
-def solve_n_queens_util(board, row, N, solutions):
     if row == N:
-        solutions.append(board[:])
+        print(solution)
+        global total_solutions
+        total_solutions.append(solution)
         return
 
     for col in range(N):
-        if is_safe(board, row, col, N):
+        if is_safe(board, N, row, col):
             board[row][col] = 1
-            solve_n_queens_util(board, row + 1, N, solutions)
+
+            solution.append([row, col])
+
+            solve_nqueens(board, N, solution, row + 1)
+
+            solution.pop()
             board[row][col] = 0
 
-def solve_n_queens(N):
-    if not N.isdigit():
-        print("N must be a number")
-        sys.exit(1)
 
-    N = int(N)
+def is_safe(board, N, row, col):
+    """ tells if a square is safe or not"""
+    up_row = row
+    left_col = col
+    right_col = col
 
-    if N < 4:
-        print("N must be at least 4")
-        sys.exit(1)
+    while up_row >= 0:
+         if board[up_row][col] == 1:
+             return False
 
-    board = [[0] * N for _ in range(N)]
-    solutions = []
-    solve_n_queens_util(board, 0, N, solutions)
+         if left_col >= 0 and board[up_row][left_col] == 1:
+             return False
 
-    for solution in solutions:
-        print(solution)
+         if right_col < N and board[up_row][right_col] == 1:
+             return False
+         
+         up_row -= 1
+         left_col -= 1
+         right_col += 1
+         
+         return True
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
 
-    N = sys.argv[1]
-    solve_n_queens(N)
+    try:
+        N = int(sys.argv[1])
+    except ValueError:
+        print('N must be a number')
+        sys.exit(1)
+
+    if N < 4:
+        print('N must be at least 4')
+        sys.exit(1)
+
+    board = [[0] * N for _ in range(N)]
+    solve_nqueens(board, N, [], 0)
