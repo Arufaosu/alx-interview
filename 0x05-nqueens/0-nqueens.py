@@ -1,12 +1,13 @@
 #!/usr/bin/python3
-"""queens"""
+"""0-nqueens.py"""
 import sys
 
 total_solutions = []
 
 
 def solve_nqueens(board, N, solution, row):
-    """checks if there is a queen"""
+    """N Queens problem"""
+
     if row == N:
         print(solution)
         global total_solutions
@@ -26,31 +27,33 @@ def solve_nqueens(board, N, solution, row):
 
 
 def is_safe(board, N, row, col):
-    """ tells if a square is safe or not"""
+    """tells if a square is safe or not"""
+
     up_row = row
     left_col = col
     right_col = col
 
     while up_row >= 0:
-         if board[up_row][col] == 1:
-             return False
+        if board[up_row][col] == 1:
+            return False
 
-         if left_col >= 0 and board[up_row][left_col] == 1:
-             return False
+        if left_col >= 0 and board[up_row][left_col] == 1:
+            return False
 
-         if right_col < N and board[up_row][right_col] == 1:
-             return False
-         
-         up_row -= 1
-         left_col -= 1
-         right_col += 1
-         
-         return True
+        if right_col < N and board[up_row][right_col] == 1:
+            return False
+
+        up_row -= 1
+        left_col -= 1
+        right_col += 1
+
+    return True
+
 
 if __name__ == '__main__':
 
     if len(sys.argv) != 2:
-        print("Usage: nqueens N")
+        print('Usage: nqueens N')
         sys.exit(1)
 
     try:
